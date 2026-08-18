@@ -6,8 +6,8 @@ This repository contains a SourcePawn plugin that integrates SourceBans++ (SBPP)
 
 **Key Information:**
 - **Language**: SourcePawn
-- **Platform**: SourceMod 1.11+ (see sourceknight.yaml for exact version)
-- **Build System**: SourceKnight (modern SourcePawn build system)
+- **Platform**: SourceMod 1.12+
+- **Build System**: Native GitHub Actions (spcomp via rumblefrog/setup-sp)
 - **Main Plugin**: `addons/sourcemod/scripting/sbpp_discord.sp`
 - **Purpose**: Bridge between SourceBans++ punishment system and Discord notifications
 
@@ -17,14 +17,13 @@ This repository contains a SourcePawn plugin that integrates SourceBans++ (SBPP)
 /
 ├── .github/
 │   └── workflows/ci.yml          # GitHub Actions CI/CD
-├── addons/sourcemod/scripting/
-│   └── sbpp_discord.sp            # Main plugin source
-└── sourceknight.yaml             # Build configuration
+└── addons/sourcemod/scripting/
+    └── sbpp_discord.sp            # Main plugin source
 ```
 
 ## Dependencies and Architecture
 
-### Core Dependencies (defined in sourceknight.yaml):
+### Core Dependencies (defined in .github/workflows/ci.yml):
 - **SourceMod 1.11+**: Base scripting platform
 - **RelayHelper**: Discord webhook functionality (required)
 - **SourceBans++**: Punishment system integration (optional)
@@ -65,26 +64,23 @@ if(IsFakeClient(client) || IsClientSourceTV(client)) {
 }
 ```
 
-## Build System - SourceKnight
+## Build System - GitHub Actions
 
 ### Building the Plugin:
-The project uses SourceKnight instead of traditional spcomp compilation:
+The project is compiled directly with `spcomp` via `rumblefrog/setup-sp` in `.github/workflows/ci.yml`:
 
 ```bash
-# Build using SourceKnight action (in CI)
-uses: maxime1907/action-sourceknight@v1
-with:
-  cmd: build
+spcomp -i include -o ../plugins/sbpp_discord.smx sbpp_discord.sp
 ```
 
-### Key Configuration (sourceknight.yaml):
-- **Output**: `/addons/sourcemod/plugins`
+### Key Configuration (.github/workflows/ci.yml):
+- **SourceMod version**: 1.12.x
+- **Output**: `addons/sourcemod/plugins`
 - **Target**: `sbpp_discord`
-- **Dependencies**: Automatically fetched from GitHub repos and archives
-- **Root**: `/` (project root)
+- **Dependencies**: Cloned from their GitHub repos (sourcebans-pp, RelayHelper, DiscordWebhookAPI) into `addons/sourcemod/scripting/include` before compilation
 
 ### Local Development:
-If developing locally, ensure SourceKnight is installed and dependencies are resolved before building.
+Install SourceMod/spcomp locally, clone the include dependencies listed in the CI workflow into `addons/sourcemod/scripting/include`, then run spcomp as shown above.
 
 ## Testing and Validation
 
@@ -97,7 +93,7 @@ Since SourcePawn plugins don't have traditional unit tests, validation focuses o
 4. **Event Testing**: Trigger SBPP events and verify Discord notifications
 
 ### CI/CD Process:
-- **Build**: Compile plugin using SourceKnight
+- **Build**: Compile plugin using spcomp (GitHub Actions)
 - **Package**: Create distributable archive
 - **Release**: Automatic releases on tags and main branch pushes
 
@@ -137,7 +133,7 @@ sbpp_website "https://bans.example.com"    // SourceBans website URL
 ## Dependencies Management
 
 ### Adding New Dependencies:
-1. Update `sourceknight.yaml` dependencies section
+1. Add a clone+copy step for the dependency in `.github/workflows/ci.yml`
 2. Add appropriate `#tryinclude` or `#include` in plugin
 3. Test with and without the dependency present
 4. Update CI if dependency affects build process
@@ -169,7 +165,7 @@ sbpp_website "https://bans.example.com"    // SourceBans website URL
 1. **Plugin not loading**: Check SourceMod version compatibility
 2. **Discord not working**: Verify RelayHelper is loaded and webhook URL is valid
 3. **No notifications**: Check if SBPP plugins are loaded and `sbpp_discord_enable` is 1
-4. **Build failures**: Ensure all dependencies in sourceknight.yaml are accessible
+4. **Build failures**: Ensure all dependencies referenced in the CI workflow are accessible
 
 ### Debug Steps:
 1. Check SourceMod error logs
