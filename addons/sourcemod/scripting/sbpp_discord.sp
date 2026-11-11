@@ -19,7 +19,7 @@ public Plugin myinfo =
 {
 	name 		= PLUGIN_NAME,
 	author 		= ".Rushaway, Dolly, koen",
-	version 	= "1.0.1",
+	version 	= "1.0.2",
 	description = "Send Sourcebans Punishments notifications to discord",
 	url 		= "https://nide.gg"
 };
